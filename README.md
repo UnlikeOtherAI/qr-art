@@ -7,6 +7,22 @@ Logo frames clear any QR modules that touch them, and browser users can convert 
 
 ![QR Art example](docs/example-screenshot.png)
 
+## Installation
+
+```bash
+pnpm add @unlikeotherai/qr-art
+```
+
+Other package managers:
+
+```bash
+npm install @unlikeotherai/qr-art
+yarn add @unlikeotherai/qr-art
+bun add @unlikeotherai/qr-art
+```
+
+## Usage
+
 ```ts
 import { makeLogoBackgroundTransparent, renderSVG } from "@unlikeotherai/qr-art";
 
