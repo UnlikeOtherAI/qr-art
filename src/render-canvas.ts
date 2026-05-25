@@ -1,6 +1,7 @@
 import { encodeMatrix } from "./encode-matrix";
 import { fillRoundedRect } from "./fill-rounded-rect";
 import { loadLogoImage } from "./load-logo-image";
+import { moduleTouchesLogoFrame, resolveLogoFrame } from "./logo-frame";
 import { traceModulePath } from "./canvas-module-path";
 import { resolveModuleCorners } from "./module-corners";
 import { resolveModuleColor } from "./module-color";
@@ -58,6 +59,7 @@ function drawModules(
   const totalModules = matrix.moduleCount + options.margin * 2;
   const moduleSize = options.size / totalModules;
   const offset = moduleSize * options.margin;
+  const logoFrame = resolveLogoFrame(options.size, options.logo);
 
   for (let row = 0; row < matrix.moduleCount; row += 1) {
     for (let col = 0; col < matrix.moduleCount; col += 1) {
@@ -67,6 +69,11 @@ function drawModules(
 
       const x = offset + col * moduleSize;
       const y = offset + row * moduleSize;
+
+      if (moduleTouchesLogoFrame(x, y, moduleSize, logoFrame)) {
+        continue;
+      }
+
       const normalizedX = matrix.moduleCount === 1 ? 0 : col / (matrix.moduleCount - 1);
       const normalizedY = matrix.moduleCount === 1 ? 0 : row / (matrix.moduleCount - 1);
 
@@ -115,22 +122,22 @@ async function drawLogo(
     return;
   }
 
-  const imageSize = size * logo.sizeRatio;
-  const frameSize = imageSize + logo.padding * 2;
-  const frameX = (size - frameSize) / 2;
-  const frameY = (size - frameSize) / 2;
-  const imageX = (size - imageSize) / 2;
-  const imageY = (size - imageSize) / 2;
-  const radius = Math.min(logo.borderRadius, frameSize / 2);
+  const frame = resolveLogoFrame(size, logo);
+
+  if (!frame) {
+    return;
+  }
+
+  const radius = Math.min(logo.borderRadius, frame.frameSize / 2);
 
   if (logo.backgroundColor !== "transparent") {
     context.fillStyle = logo.backgroundColor;
-    fillRoundedRect(context, frameX, frameY, frameSize, frameSize, radius);
+    fillRoundedRect(context, frame.x, frame.y, frame.frameSize, frame.frameSize, radius);
   }
 
   const image = await loadLogoImage(logo);
 
   if (image) {
-    context.drawImage(image, imageX, imageY, imageSize, imageSize);
+    context.drawImage(image, frame.imageX, frame.imageY, frame.imageSize, frame.imageSize);
   }
 }

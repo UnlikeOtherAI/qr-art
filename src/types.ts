@@ -34,6 +34,7 @@ export interface QRLogoOptions {
   readonly borderRadius?: number;
   readonly crossOrigin?: "" | "anonymous" | "use-credentials";
   readonly image?: CanvasImageSource;
+  readonly overlay?: boolean;
   readonly padding?: number;
   readonly sizeRatio?: number;
   readonly src?: string;

@@ -51,6 +51,18 @@ describe("renderSVG", () => {
     expect(svg).toContain("<image");
     expect(svg).toContain("clip-path=");
   });
+
+  it("renders overlay logos without a logo background fill", () => {
+    const svg = renderSVG("overlay", {
+      logo: {
+        overlay: true,
+        src: "logo.png",
+      },
+    });
+
+    expect(svg).not.toContain('rx="12" fill="#ffffff"');
+    expect(svg).toContain("<image");
+  });
 });
 
 describe("createStyledQRCode", () => {

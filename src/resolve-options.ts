@@ -33,7 +33,7 @@ function resolveLogo(logo: QRCodeOptions["logo"]): ResolvedQRLogoOptions | undef
 
   return {
     alt: logo.alt ?? "Logo",
-    backgroundColor: logo.backgroundColor ?? DEFAULT_BACKGROUND,
+    backgroundColor: logo.backgroundColor ?? (logo.overlay ? "transparent" : DEFAULT_BACKGROUND),
     borderRadius: clampFinite(logo.borderRadius, DEFAULT_LOGO_BORDER_RADIUS, 0, 512),
     crossOrigin: logo.crossOrigin ?? "anonymous",
     image: logo.image,

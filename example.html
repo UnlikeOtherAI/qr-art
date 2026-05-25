@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>QR Art Example</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f766e'/%3E%3Cpath fill='white' d='M8 9h16v5h-5v10h-6V14H8z'/%3E%3C/svg%3E" />
     <style>
       :root {
         color-scheme: light;
@@ -117,6 +118,10 @@
         width: auto;
       }
 
+      [hidden] {
+        display: none !important;
+      }
+
       .preview {
         align-items: center;
         display: grid;
@@ -206,7 +211,7 @@
             </select>
           </label>
 
-          <label>
+          <label id="cornerRadiusField">
             Corner radius
             <input id="cornerRadius" type="range" min="0" max="0.5" step="0.05" value="0.25" />
           </label>
@@ -229,6 +234,21 @@
             Logo
           </label>
 
+          <label id="logoFileField">
+            Logo file
+            <input id="logoFile" type="file" accept="image/*" />
+          </label>
+
+          <label id="logoOverlayField" class="switch">
+            <input id="logoOverlay" type="checkbox" />
+            Overlay
+          </label>
+
+          <label id="logoThresholdField">
+            White threshold
+            <input id="logoThreshold" type="range" min="0" max="160" step="4" value="48" />
+          </label>
+
           <button id="download" type="button">Download SVG</button>
         </div>
       </section>
@@ -241,7 +261,7 @@
     </main>
 
     <script type="module">
-      import { createStyledQRCode } from "./dist/index.js";
+      import { createStyledQRCode, makeLogoBackgroundTransparent } from "./dist/index.js";
 
       const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
         <rect width="120" height="120" rx="26" fill="#0f766e"/>
@@ -252,8 +272,15 @@
         color: document.querySelector("#color"),
         content: document.querySelector("#content"),
         cornerRadius: document.querySelector("#cornerRadius"),
+        cornerRadiusField: document.querySelector("#cornerRadiusField"),
         download: document.querySelector("#download"),
         logo: document.querySelector("#logo"),
+        logoFile: document.querySelector("#logoFile"),
+        logoFileField: document.querySelector("#logoFileField"),
+        logoOverlay: document.querySelector("#logoOverlay"),
+        logoOverlayField: document.querySelector("#logoOverlayField"),
+        logoThreshold: document.querySelector("#logoThreshold"),
+        logoThresholdField: document.querySelector("#logoThresholdField"),
         mask: document.querySelector("#mask"),
         qr: document.querySelector("#qr"),
         shape: document.querySelector("#shape"),
@@ -261,21 +288,26 @@
         sizeValue: document.querySelector("#sizeValue"),
       };
       let currentSvg = "";
+      let uploadedLogoFile;
+      let logoSource = logoSrc;
 
       function buildOptions() {
         const size = Number(elements.size.value);
+        const isDot = elements.shape.value === "dot";
+        const isOverlay = elements.logoOverlay.checked;
 
         return {
           backgroundColor: "#ffffff",
           color: elements.color.value,
-          cornerRadius: Number(elements.cornerRadius.value),
+          cornerRadius: isDot ? 0 : Number(elements.cornerRadius.value),
           logo: elements.logo.checked
             ? {
-                backgroundColor: "#ffffff",
+                backgroundColor: isOverlay ? "transparent" : "#ffffff",
                 borderRadius: 18,
+                overlay: isOverlay,
                 padding: 10,
                 sizeRatio: 0.22,
-                src: logoSrc,
+                src: logoSource,
               }
             : undefined,
           mask:
@@ -292,6 +324,10 @@
 
       function render() {
         elements.sizeValue.value = elements.size.value;
+        elements.cornerRadiusField.hidden = elements.shape.value === "dot";
+        elements.logoFileField.hidden = !elements.logo.checked;
+        elements.logoOverlayField.hidden = !elements.logo.checked;
+        elements.logoThresholdField.hidden = !elements.logo.checked || !elements.logoOverlay.checked;
 
         const qr = createStyledQRCode(elements.content.value, buildOptions());
         currentSvg = qr.toSvg();
@@ -309,12 +345,50 @@
         URL.revokeObjectURL(url);
       }
 
+      function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+
+          reader.addEventListener("load", () => {
+            if (typeof reader.result === "string") {
+              resolve(reader.result);
+            } else {
+              reject(new Error("Logo file could not be read."));
+            }
+          });
+          reader.addEventListener("error", () => reject(new Error("Logo file could not be read.")));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function refreshLogoSource() {
+        if (!uploadedLogoFile) {
+          logoSource = logoSrc;
+          render();
+          return;
+        }
+
+        logoSource = elements.logoOverlay.checked
+          ? await makeLogoBackgroundTransparent(uploadedLogoFile, {
+              color: "#ffffff",
+              tolerance: Number(elements.logoThreshold.value),
+            })
+          : await readFileAsDataUrl(uploadedLogoFile);
+        render();
+      }
+
       elements.size.addEventListener("input", render);
       elements.sizeValue.addEventListener("input", () => {
         elements.size.value = elements.sizeValue.value;
         render();
       });
       elements.download.addEventListener("click", downloadSvg);
+      elements.logoFile.addEventListener("input", async () => {
+        uploadedLogoFile = elements.logoFile.files?.[0];
+        await refreshLogoSource();
+      });
+      elements.logoOverlay.addEventListener("input", refreshLogoSource);
+      elements.logoThreshold.addEventListener("input", refreshLogoSource);
 
       for (const element of [
         elements.color,
@@ -322,10 +396,10 @@
         elements.cornerRadius,
         elements.logo,
         elements.mask,
-        elements.shape,
       ]) {
         element.addEventListener("input", render);
       }
+      elements.shape.addEventListener("input", render);
 
       render();
     </script>

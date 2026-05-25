@@ -2,6 +2,7 @@ import { encodeMatrix } from "./encode-matrix";
 import { escapeXml } from "./escape-xml";
 import { formatNumber } from "./format-number";
 import { hashString } from "./hash-string";
+import { moduleTouchesLogoFrame, resolveLogoFrame } from "./logo-frame";
 import { resolveModuleCorners } from "./module-corners";
 import { resolveModuleColor } from "./module-color";
 import { resolveOptions } from "./resolve-options";
@@ -22,6 +23,7 @@ export function renderSvgFromMatrix(
   const totalModules = matrix.moduleCount + options.margin * 2;
   const moduleSize = options.size / totalModules;
   const offset = moduleSize * options.margin;
+  const logoFrame = options.logo?.src ? resolveLogoFrame(options.size, options.logo) : undefined;
   const children: string[] = [];
 
   if (options.backgroundColor !== "transparent") {
@@ -36,7 +38,14 @@ export function renderSvgFromMatrix(
         continue;
       }
 
-      children.push(renderModule(matrix, options, row, col, moduleSize, offset));
+      const x = offset + col * moduleSize;
+      const y = offset + row * moduleSize;
+
+      if (moduleTouchesLogoFrame(x, y, moduleSize, logoFrame)) {
+        continue;
+      }
+
+      children.push(renderModule(matrix, options, row, col, moduleSize, x, y));
     }
   }
 
@@ -55,10 +64,9 @@ function renderModule(
   row: number,
   col: number,
   moduleSize: number,
-  offset: number,
+  x: number,
+  y: number,
 ): string {
-  const x = offset + col * moduleSize;
-  const y = offset + row * moduleSize;
   const normalizedX = matrix.moduleCount === 1 ? 0 : col / (matrix.moduleCount - 1);
   const normalizedY = matrix.moduleCount === 1 ? 0 : row / (matrix.moduleCount - 1);
   const color = resolveModuleColor(
@@ -98,30 +106,30 @@ function renderLogo(size: number, logo: ResolvedQRLogoOptions | undefined): stri
     return "";
   }
 
-  const imageSize = size * logo.sizeRatio;
-  const frameSize = imageSize + logo.padding * 2;
-  const frameX = (size - frameSize) / 2;
-  const frameY = (size - frameSize) / 2;
-  const imageX = (size - imageSize) / 2;
-  const imageY = (size - imageSize) / 2;
-  const radius = Math.min(logo.borderRadius, frameSize / 2);
+  const frame = resolveLogoFrame(size, logo);
+
+  if (!frame) {
+    return "";
+  }
+
+  const radius = Math.min(logo.borderRadius, frame.frameSize / 2);
   const clipId = `qr-logo-${hashString(logo.src)}`;
   const pieces: string[] = [];
 
   if (logo.backgroundColor !== "transparent") {
     pieces.push(
-      `<rect x="${formatNumber(frameX)}" y="${formatNumber(frameY)}" width="${formatNumber(frameSize)}" height="${formatNumber(frameSize)}" rx="${formatNumber(radius)}" fill="${escapeXml(logo.backgroundColor)}"/>`,
+      `<rect x="${formatNumber(frame.x)}" y="${formatNumber(frame.y)}" width="${formatNumber(frame.frameSize)}" height="${formatNumber(frame.frameSize)}" rx="${formatNumber(radius)}" fill="${escapeXml(logo.backgroundColor)}"/>`,
     );
   }
 
   if (radius > 0) {
     pieces.push(
-      `<defs><clipPath id="${clipId}"><rect x="${formatNumber(imageX)}" y="${formatNumber(imageY)}" width="${formatNumber(imageSize)}" height="${formatNumber(imageSize)}" rx="${formatNumber(Math.max(radius - logo.padding, 0))}"/></clipPath></defs>`,
+      `<defs><clipPath id="${clipId}"><rect x="${formatNumber(frame.imageX)}" y="${formatNumber(frame.imageY)}" width="${formatNumber(frame.imageSize)}" height="${formatNumber(frame.imageSize)}" rx="${formatNumber(Math.max(radius - logo.padding, 0))}"/></clipPath></defs>`,
     );
   }
 
   pieces.push(
-    `<image href="${escapeXml(logo.src)}" x="${formatNumber(imageX)}" y="${formatNumber(imageY)}" width="${formatNumber(imageSize)}" height="${formatNumber(imageSize)}" preserveAspectRatio="xMidYMid meet"${radius > 0 ? ` clip-path="url(#${clipId})"` : ""}/>`,
+    `<image href="${escapeXml(logo.src)}" x="${formatNumber(frame.imageX)}" y="${formatNumber(frame.imageY)}" width="${formatNumber(frame.imageSize)}" height="${formatNumber(frame.imageSize)}" preserveAspectRatio="xMidYMid meet"${radius > 0 ? ` clip-path="url(#${clipId})"` : ""}/>`,
   );
 
   return pieces.join("");

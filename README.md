@@ -3,9 +3,17 @@
 Styled QR code generation for browsers and Node.js.
 
 Rounded square modules keep shared internal joins filled, so only the exposed outside contour gets rounded.
+Logo frames clear any QR modules that touch them, and browser users can convert a flat white logo background into transparency before rendering.
+
+![QR Art example](docs/example-screenshot.png)
 
 ```ts
-import { renderSVG } from "@unlikeother/qr-art";
+import { makeLogoBackgroundTransparent, renderSVG } from "@unlikeother/qr-art";
+
+const logo = await makeLogoBackgroundTransparent(file, {
+  color: "#ffffff",
+  tolerance: 48,
+});
 
 const svg = renderSVG("https://example.com", {
   size: 512,
@@ -13,10 +21,10 @@ const svg = renderSVG("https://example.com", {
   cornerRadius: 0.3,
   mask: { preset: "rainbow" },
   logo: {
-    src: "/logo.svg",
+    src: logo,
+    overlay: true,
     sizeRatio: 0.22,
     padding: 10,
-    backgroundColor: "#ffffff",
     borderRadius: 16,
   },
 });

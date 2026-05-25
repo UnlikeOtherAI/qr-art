@@ -13,6 +13,8 @@ Build a TypeScript QR code library that can generate styled QR codes from browse
 - Let callers provide a custom mask function for per-module color control.
 - Let callers place a logo in the middle of the QR code.
 - Let callers set the logo size, padding, background color, and border radius.
+- Let callers clear QR modules that touch the logo frame so segments do not appear under or against the logo.
+- Let browser callers upload a custom logo and optionally convert a flat white logo background into transparency for overlay-style logos.
 - Let callers round square QR modules on exposed outer corners while keeping shared internal joins filled.
 - Let callers choose square modules or dot modules.
 - Work in frontend environments.
@@ -21,7 +23,17 @@ Build a TypeScript QR code library that can generate styled QR codes from browse
 ## Public API Shape
 
 ```ts
-import { createStyledQRCode, renderCanvas, renderSVG } from "@unlikeother/qr-art";
+import {
+  createStyledQRCode,
+  makeLogoBackgroundTransparent,
+  renderCanvas,
+  renderSVG,
+} from "@unlikeother/qr-art";
+
+const logo = await makeLogoBackgroundTransparent(file, {
+  color: "#ffffff",
+  tolerance: 48,
+});
 
 const svg = renderSVG("https://example.com", {
   size: 512,
@@ -34,10 +46,10 @@ const svg = renderSVG("https://example.com", {
     direction: "diagonal",
   },
   logo: {
-    src: "/logo.svg",
+    src: logo,
+    overlay: true,
     sizeRatio: 0.22,
     padding: 10,
-    backgroundColor: "#ffffff",
     borderRadius: 16,
   },
 });
@@ -53,5 +65,6 @@ await renderCanvas(canvas, "hello", { size: 320 });
 - Use a proven QR encoder for the matrix generation.
 - Keep styling in this package: SVG renderer, Canvas renderer, masks, logo placement, rounded modules, and dot rendering.
 - Default to high error correction when a logo is configured.
+- In the example UI, hide the corner radius control while dot modules are selected because dot rendering ignores it.
 - Keep files focused and under 500 lines.
 - Provide a root `example.html` that imports the built browser bundle from `dist/index.js`.
