@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QR Art Example</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --text: #17202a;
+        --muted: #64748b;
+        --line: #d9e0e8;
+        --accent: #0f766e;
+        --accent-strong: #115e59;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) minmax(320px, 1fr);
+        gap: 24px;
+        margin: 0 auto;
+        max-width: 1120px;
+        min-height: 100vh;
+        padding: 32px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        font-weight: 720;
+        line-height: 1.1;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .panel {
+        align-self: start;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      .controls {
+        display: grid;
+        gap: 16px;
+        margin-top: 22px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 680;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #ffffff;
+        color: var(--text);
+        font: inherit;
+        min-height: 40px;
+        padding: 8px 10px;
+      }
+
+      textarea {
+        min-height: 84px;
+        resize: vertical;
+      }
+
+      input[type="color"] {
+        height: 40px;
+        padding: 4px;
+      }
+
+      input[type="range"] {
+        padding: 0;
+      }
+
+      .inline {
+        align-items: center;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr 80px;
+      }
+
+      .switch {
+        align-items: center;
+        display: flex;
+        gap: 10px;
+      }
+
+      .switch input {
+        width: auto;
+      }
+
+      .preview {
+        align-items: center;
+        display: grid;
+        min-height: calc(100vh - 64px);
+      }
+
+      .preview-inner {
+        display: grid;
+        gap: 18px;
+        justify-items: center;
+      }
+
+      #qr {
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        display: grid;
+        justify-items: center;
+        padding: 24px;
+        width: min(100%, 560px);
+      }
+
+      #qr svg {
+        display: block;
+        height: auto;
+        max-width: 100%;
+      }
+
+      button {
+        align-items: center;
+        background: var(--accent);
+        border: 0;
+        border-radius: 6px;
+        color: #ffffff;
+        cursor: pointer;
+        display: inline-flex;
+        font: inherit;
+        font-weight: 720;
+        justify-content: center;
+        min-height: 42px;
+        padding: 10px 14px;
+      }
+
+      button:hover {
+        background: var(--accent-strong);
+      }
+
+      @media (max-width: 760px) {
+        main {
+          grid-template-columns: 1fr;
+          min-height: auto;
+          padding: 18px;
+        }
+
+        .preview {
+          min-height: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <h1>QR Art</h1>
+        <p>Styled QR output from the local TypeScript build.</p>
+
+        <div class="controls">
+          <label>
+            Content
+            <textarea id="content">https://example.com/pay/receipt-270</textarea>
+          </label>
+
+          <label>
+            Size
+            <span class="inline">
+              <input id="size" type="range" min="160" max="720" step="8" value="360" />
+              <input id="sizeValue" type="number" min="160" max="720" step="8" value="360" />
+            </span>
+          </label>
+
+          <label>
+            Shape
+            <select id="shape">
+              <option value="square">Square</option>
+              <option value="dot">Dot</option>
+            </select>
+          </label>
+
+          <label>
+            Corner radius
+            <input id="cornerRadius" type="range" min="0" max="0.5" step="0.05" value="0.25" />
+          </label>
+
+          <label>
+            QR color
+            <input id="color" type="color" value="#17202a" />
+          </label>
+
+          <label>
+            Mask
+            <select id="mask">
+              <option value="rainbow">Rainbow</option>
+              <option value="none">None</option>
+            </select>
+          </label>
+
+          <label class="switch">
+            <input id="logo" type="checkbox" checked />
+            Logo
+          </label>
+
+          <button id="download" type="button">Download SVG</button>
+        </div>
+      </section>
+
+      <section class="preview">
+        <div class="preview-inner">
+          <div id="qr" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { createStyledQRCode } from "./dist/index.js";
+
+      const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+        <rect width="120" height="120" rx="26" fill="#0f766e"/>
+        <path fill="#fff" d="M31 34h58v15H70v37H51V49H31z"/>
+      </svg>`;
+      const logoSrc = `data:image/svg+xml,${encodeURIComponent(logoSvg)}`;
+      const elements = {
+        color: document.querySelector("#color"),
+        content: document.querySelector("#content"),
+        cornerRadius: document.querySelector("#cornerRadius"),
+        download: document.querySelector("#download"),
+        logo: document.querySelector("#logo"),
+        mask: document.querySelector("#mask"),
+        qr: document.querySelector("#qr"),
+        shape: document.querySelector("#shape"),
+        size: document.querySelector("#size"),
+        sizeValue: document.querySelector("#sizeValue"),
+      };
+      let currentSvg = "";
+
+      function buildOptions() {
+        const size = Number(elements.size.value);
+
+        return {
+          backgroundColor: "#ffffff",
+          color: elements.color.value,
+          cornerRadius: Number(elements.cornerRadius.value),
+          logo: elements.logo.checked
+            ? {
+                backgroundColor: "#ffffff",
+                borderRadius: 18,
+                padding: 10,
+                sizeRatio: 0.22,
+                src: logoSrc,
+              }
+            : undefined,
+          mask:
+            elements.mask.value === "rainbow"
+              ? {
+                  direction: "diagonal",
+                  preset: "rainbow",
+                }
+              : undefined,
+          shape: elements.shape.value,
+          size,
+        };
+      }
+
+      function render() {
+        elements.sizeValue.value = elements.size.value;
+
+        const qr = createStyledQRCode(elements.content.value, buildOptions());
+        currentSvg = qr.toSvg();
+        elements.qr.innerHTML = currentSvg;
+      }
+
+      function downloadSvg() {
+        const blob = new Blob([currentSvg], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+
+        anchor.href = url;
+        anchor.download = "qr-art.svg";
+        anchor.click();
+        URL.revokeObjectURL(url);
+      }
+
+      elements.size.addEventListener("input", render);
+      elements.sizeValue.addEventListener("input", () => {
+        elements.size.value = elements.sizeValue.value;
+        render();
+      });
+      elements.download.addEventListener("click", downloadSvg);
+
+      for (const element of [
+        elements.color,
+        elements.content,
+        elements.cornerRadius,
+        elements.logo,
+        elements.mask,
+        elements.shape,
+      ]) {
+        element.addEventListener("input", render);
+      }
+
+      render();
+    </script>
+  </body>
+</html>
