@@ -5,12 +5,12 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Rafiki270/qr-art.git"
+    "url": "git+https://github.com/UnlikeOtherAI/qr-art.git"
   },
   "bugs": {
-    "url": "https://github.com/Rafiki270/qr-art/issues"
+    "url": "https://github.com/UnlikeOtherAI/qr-art/issues"
   },
-  "homepage": "https://github.com/Rafiki270/qr-art#readme",
+  "homepage": "https://github.com/UnlikeOtherAI/qr-art#readme",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
