@@ -1,5 +1,5 @@
 {
-  "name": "@unlikeother/qr-art",
+  "name": "@unlikeotherai/qr-art",
   "version": "0.1.0",
   "description": "Styled QR code generation for browsers and Node.js.",
   "type": "module",

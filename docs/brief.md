@@ -28,7 +28,7 @@ import {
   makeLogoBackgroundTransparent,
   renderCanvas,
   renderSVG,
-} from "@unlikeother/qr-art";
+} from "@unlikeotherai/qr-art";
 
 const logo = await makeLogoBackgroundTransparent(file, {
   color: "#ffffff",

@@ -8,7 +8,7 @@ Logo frames clear any QR modules that touch them, and browser users can convert 
 ![QR Art example](docs/example-screenshot.png)
 
 ```ts
-import { makeLogoBackgroundTransparent, renderSVG } from "@unlikeother/qr-art";
+import { makeLogoBackgroundTransparent, renderSVG } from "@unlikeotherai/qr-art";
 
 const logo = await makeLogoBackgroundTransparent(file, {
   color: "#ffffff",
