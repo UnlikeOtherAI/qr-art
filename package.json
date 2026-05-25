@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Styled QR code generation for browsers and Node.js.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rafiki270/qr-art.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Rafiki270/qr-art/issues"
+  },
+  "homepage": "https://github.com/Rafiki270/qr-art#readme",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
