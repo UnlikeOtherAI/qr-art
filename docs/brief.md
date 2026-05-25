@@ -13,7 +13,7 @@ Build a TypeScript QR code library that can generate styled QR codes from browse
 - Let callers provide a custom mask function for per-module color control.
 - Let callers place a logo in the middle of the QR code.
 - Let callers set the logo size, padding, background color, and border radius.
-- Let callers round the corners of each QR module.
+- Let callers round square QR modules on exposed outer corners while keeping shared internal joins filled.
 - Let callers choose square modules or dot modules.
 - Work in frontend environments.
 - Work in backend environments, at minimum through SVG string generation.

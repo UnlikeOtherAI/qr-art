@@ -2,6 +2,8 @@
 
 Styled QR code generation for browsers and Node.js.
 
+Rounded square modules keep shared internal joins filled, so only the exposed outside contour gets rounded.
+
 ```ts
 import { renderSVG } from "@unlikeother/qr-art";
 

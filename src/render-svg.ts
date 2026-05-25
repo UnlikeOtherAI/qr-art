@@ -2,8 +2,10 @@ import { encodeMatrix } from "./encode-matrix";
 import { escapeXml } from "./escape-xml";
 import { formatNumber } from "./format-number";
 import { hashString } from "./hash-string";
+import { resolveModuleCorners } from "./module-corners";
 import { resolveModuleColor } from "./module-color";
 import { resolveOptions } from "./resolve-options";
+import { svgModulePath } from "./svg-module-path";
 import type { QRCodeOptions, QRMatrix, ResolvedQRCodeOptions, ResolvedQRLogoOptions } from "./types";
 
 export function renderSVG(content: string, options: QRCodeOptions = {}): string {
@@ -82,7 +84,13 @@ function renderModule(
 
   const cornerRadius = moduleSize * options.cornerRadius;
 
-  return `<rect x="${formatNumber(x)}" y="${formatNumber(y)}" width="${formatNumber(moduleSize)}" height="${formatNumber(moduleSize)}" rx="${formatNumber(cornerRadius)}" fill="${escapeXml(color)}"/>`;
+  if (cornerRadius <= 0) {
+    return `<rect x="${formatNumber(x)}" y="${formatNumber(y)}" width="${formatNumber(moduleSize)}" height="${formatNumber(moduleSize)}" fill="${escapeXml(color)}"/>`;
+  }
+
+  const corners = resolveModuleCorners(matrix, row, col);
+
+  return `<path d="${svgModulePath(x, y, moduleSize, cornerRadius, corners)}" fill="${escapeXml(color)}"/>`;
 }
 
 function renderLogo(size: number, logo: ResolvedQRLogoOptions | undefined): string {

@@ -30,7 +30,7 @@ describe("renderSVG", () => {
       size: 160,
     });
 
-    expect(svg).toContain(" rx=");
+    expect(svg).toContain("<path");
   });
 
   it("uses mask functions for module colors", () => {

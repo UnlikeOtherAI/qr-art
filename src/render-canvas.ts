@@ -1,6 +1,8 @@
 import { encodeMatrix } from "./encode-matrix";
 import { fillRoundedRect } from "./fill-rounded-rect";
 import { loadLogoImage } from "./load-logo-image";
+import { traceModulePath } from "./canvas-module-path";
+import { resolveModuleCorners } from "./module-corners";
 import { resolveModuleColor } from "./module-color";
 import { resolveOptions } from "./resolve-options";
 import type {
@@ -87,8 +89,18 @@ function drawModules(
         context.beginPath();
         context.arc(x + moduleSize / 2, y + moduleSize / 2, moduleSize / 2, 0, Math.PI * 2);
         context.fill();
+      } else if (options.cornerRadius > 0) {
+        traceModulePath(
+          context,
+          x,
+          y,
+          moduleSize,
+          moduleSize * options.cornerRadius,
+          resolveModuleCorners(matrix, row, col),
+        );
+        context.fill();
       } else {
-        fillRoundedRect(context, x, y, moduleSize, moduleSize, moduleSize * options.cornerRadius);
+        context.fillRect(x, y, moduleSize, moduleSize);
       }
     }
   }
