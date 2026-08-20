@@ -20,12 +20,14 @@
       .field { display: grid; gap: 8px; margin-top: 18px; }
       .field:first-of-type { margin-top: 0; }
       label, .field > span, .field-label { font-size: .84rem; font-weight: 700; }
-      textarea, select, input[type="color"] { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: inherit; font: inherit; }
+      textarea, select, input[type="color"], input[type="email"], input[type="password"], input[type="tel"], input[type="text"], input[type="url"] { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: inherit; font: inherit; }
       textarea { min-height: 96px; padding: 12px; line-height: 1.4; resize: vertical; }
-      select { min-height: 44px; padding: 0 10px; }
+      select, input[type="email"], input[type="password"], input[type="tel"], input[type="text"], input[type="url"] { min-height: 44px; padding: 0 10px; }
       input[type="color"] { height: 44px; padding: 5px; cursor: pointer; }
       input[type="range"] { width: 100%; accent-color: var(--accent); }
       .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .type-fields { display: grid; gap: 14px; }
+      .type-fields .field { margin-top: 0; }
       .range-line { display: grid; grid-template-columns: 1fr 56px; align-items: center; gap: 12px; }
       output { color: var(--muted); font-size: .88rem; text-align: right; }
       .logo-controls { display: grid; gap: 12px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
@@ -57,7 +59,19 @@
       <section class="workspace" aria-label="QR code generator">
         <div class="controls">
           <h2>Customize</h2>
-          <label class="field" for="content"><span>Link or text</span><textarea id="content" autocomplete="off" spellcheck="false">https://unlikeotherai.com</textarea></label>
+          <label class="field" for="contentType"><span>QR content type</span><select id="contentType"><option value="url">Website URL</option><option value="text">Plain text</option><option value="wifi">Wi-Fi network</option><option value="email">Email</option><option value="phone">Phone number</option><option value="sms">SMS message</option></select></label>
+          <label id="contentField" class="field" for="content"><span id="contentLabel">Website URL</span><textarea id="content" autocomplete="off" spellcheck="false" placeholder="https://example.com">https://unlikeotherai.com</textarea></label>
+          <div id="wifiFields" class="type-fields" hidden>
+            <label class="field" for="wifiSsid"><span>Network name (SSID)</span><input id="wifiSsid" type="text" autocomplete="off" /></label>
+            <div class="row"><label class="field" for="wifiSecurity"><span>Security</span><select id="wifiSecurity"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">No password</option></select></label><label class="field" for="wifiPassword"><span>Network password</span><input id="wifiPassword" type="password" autocomplete="off" /></label></div>
+          </div>
+          <div id="emailFields" class="type-fields" hidden>
+            <label class="field" for="emailTo"><span>Email address</span><input id="emailTo" type="email" autocomplete="off" /></label>
+            <label class="field" for="emailSubject"><span>Subject</span><input id="emailSubject" type="text" autocomplete="off" /></label>
+            <label class="field" for="emailBody"><span>Message</span><textarea id="emailBody" autocomplete="off" spellcheck="true"></textarea></label>
+          </div>
+          <div id="phoneFields" class="type-fields" hidden><label class="field" for="phoneNumber"><span>Phone number</span><input id="phoneNumber" type="tel" autocomplete="tel" /></label></div>
+          <div id="smsFields" class="type-fields" hidden><label class="field" for="smsNumber"><span>Phone number</span><input id="smsNumber" type="tel" autocomplete="tel" /></label><label class="field" for="smsMessage"><span>Message</span><textarea id="smsMessage" autocomplete="off" spellcheck="true"></textarea></label></div>
           <div class="row">
             <label class="field" for="colorMode"><span>Code colour</span><select id="colorMode"><option value="solid">Solid</option><option value="rainbow">Rainbow</option></select></label>
             <label id="codeColorField" class="field" for="color"><span>Solid colour</span><input id="color" type="color" value="#121826" /></label>
@@ -84,12 +98,95 @@
       import { createStyledQRCode, makeLogoBackgroundTransparent } from "./dist/index.js?version=__BUILD_VERSION__";
 
       const elements = {
-        codeColorField: document.querySelector("#codeColorField"), color: document.querySelector("#color"), colorMode: document.querySelector("#colorMode"), content: document.querySelector("#content"), cornerRadius: document.querySelector("#cornerRadius"), cornerRadiusField: document.querySelector("#cornerRadiusField"), cornerRadiusValue: document.querySelector("#cornerRadiusValue"), download: document.querySelector("#download"), downloadPng: document.querySelector("#downloadPng"), logoColor: document.querySelector("#logoColor"), logoColorField: document.querySelector("#logoColorField"), logoColorMode: document.querySelector("#logoColorMode"), logoFile: document.querySelector("#logoFile"), logoOptions: document.querySelector("#logoOptions"), logoStatus: document.querySelector("#logoStatus"), qr: document.querySelector("#qr"), size: document.querySelector("#size"), sizeValue: document.querySelector("#sizeValue"), style: document.querySelector("#style"),
+        codeColorField: document.querySelector("#codeColorField"), color: document.querySelector("#color"), colorMode: document.querySelector("#colorMode"), content: document.querySelector("#content"), contentField: document.querySelector("#contentField"), contentLabel: document.querySelector("#contentLabel"), contentType: document.querySelector("#contentType"), cornerRadius: document.querySelector("#cornerRadius"), cornerRadiusField: document.querySelector("#cornerRadiusField"), cornerRadiusValue: document.querySelector("#cornerRadiusValue"), download: document.querySelector("#download"), downloadPng: document.querySelector("#downloadPng"), emailBody: document.querySelector("#emailBody"), emailFields: document.querySelector("#emailFields"), emailSubject: document.querySelector("#emailSubject"), emailTo: document.querySelector("#emailTo"), logoColor: document.querySelector("#logoColor"), logoColorField: document.querySelector("#logoColorField"), logoColorMode: document.querySelector("#logoColorMode"), logoFile: document.querySelector("#logoFile"), logoOptions: document.querySelector("#logoOptions"), logoStatus: document.querySelector("#logoStatus"), phoneFields: document.querySelector("#phoneFields"), phoneNumber: document.querySelector("#phoneNumber"), qr: document.querySelector("#qr"), size: document.querySelector("#size"), sizeValue: document.querySelector("#sizeValue"), smsFields: document.querySelector("#smsFields"), smsMessage: document.querySelector("#smsMessage"), smsNumber: document.querySelector("#smsNumber"), style: document.querySelector("#style"), wifiFields: document.querySelector("#wifiFields"), wifiPassword: document.querySelector("#wifiPassword"), wifiSecurity: document.querySelector("#wifiSecurity"), wifiSsid: document.querySelector("#wifiSsid"),
       };
       let currentSvg = "";
       let logoFile;
       let logoSource;
       let logoRequest = 0;
+      const formStorageKey = "qr-generator-form-v1";
+      const localStateCookie = "qr-generator-local-state";
+      const logoDatabaseName = "qr-generator-local-assets";
+      const logoStoreName = "assets";
+
+      const typeDetails = {
+        url: { label: "Website URL", placeholder: "https://example.com" },
+        text: { label: "Plain text", placeholder: "Write any text" },
+      };
+
+      function setLocalStateMarker() {
+        document.cookie = `${localStateCookie}=1; Max-Age=31536000; Path=/; SameSite=Lax; Secure`;
+      }
+
+      function formState() {
+        return {
+          color: elements.color.value, colorMode: elements.colorMode.value, content: elements.content.value, contentType: elements.contentType.value, cornerRadius: elements.cornerRadius.value, emailBody: elements.emailBody.value, emailSubject: elements.emailSubject.value, emailTo: elements.emailTo.value, logoColor: elements.logoColor.value, logoColorMode: elements.logoColorMode.value, phoneNumber: elements.phoneNumber.value, size: elements.size.value, smsMessage: elements.smsMessage.value, smsNumber: elements.smsNumber.value, style: elements.style.value, wifiPassword: elements.wifiPassword.value, wifiSecurity: elements.wifiSecurity.value, wifiSsid: elements.wifiSsid.value,
+        };
+      }
+
+      function persistFormState() {
+        try {
+          localStorage.setItem(formStorageKey, JSON.stringify(formState()));
+          setLocalStateMarker();
+        } catch { /* Browsers can disable local storage; the generator still works without persistence. */ }
+      }
+
+      function restoreFormState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(formStorageKey) || "null");
+          if (!saved || typeof saved !== "object") return;
+          for (const [key, element] of Object.entries({ color: elements.color, colorMode: elements.colorMode, content: elements.content, contentType: elements.contentType, cornerRadius: elements.cornerRadius, emailBody: elements.emailBody, emailSubject: elements.emailSubject, emailTo: elements.emailTo, logoColor: elements.logoColor, logoColorMode: elements.logoColorMode, phoneNumber: elements.phoneNumber, size: elements.size, smsMessage: elements.smsMessage, smsNumber: elements.smsNumber, style: elements.style, wifiPassword: elements.wifiPassword, wifiSecurity: elements.wifiSecurity, wifiSsid: elements.wifiSsid })) {
+            if (typeof saved[key] === "string") element.value = saved[key];
+          }
+        } catch { /* Ignore malformed or unavailable browser storage. */ }
+      }
+
+      function openLogoDatabase() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(logoDatabaseName, 1);
+          request.addEventListener("upgradeneeded", () => request.result.createObjectStore(logoStoreName));
+          request.addEventListener("success", () => resolve(request.result));
+          request.addEventListener("error", () => reject(request.error));
+        });
+      }
+
+      function requestValue(request) {
+        return new Promise((resolve, reject) => {
+          request.addEventListener("success", () => resolve(request.result));
+          request.addEventListener("error", () => reject(request.error));
+        });
+      }
+
+      function transactionComplete(transaction) {
+        return new Promise((resolve, reject) => {
+          transaction.addEventListener("complete", resolve);
+          transaction.addEventListener("error", () => reject(transaction.error));
+          transaction.addEventListener("abort", () => reject(transaction.error));
+        });
+      }
+
+      async function persistLogo(file) {
+        try {
+          const database = await openLogoDatabase();
+          const transaction = database.transaction(logoStoreName, "readwrite");
+          const store = transaction.objectStore(logoStoreName);
+          if (file) store.put({ file, name: file.name }, "current"); else store.delete("current");
+          await transactionComplete(transaction);
+          database.close();
+        } catch { /* A logo is optional, so persistence failures must not block generation. */ }
+      }
+
+      async function restoreLogo() {
+        try {
+          const database = await openLogoDatabase();
+          const transaction = database.transaction(logoStoreName, "readonly");
+          const saved = await requestValue(transaction.objectStore(logoStoreName).get("current"));
+          database.close();
+          if (!saved?.file || !(saved.file instanceof Blob)) return;
+          logoFile = saved.file instanceof File ? saved.file : new File([saved.file], saved.name || "saved-logo", { type: saved.file.type });
+          refreshLogo();
+        } catch { /* No stored logo is a valid initial state. */ }
+      }
 
       function readFileAsDataUrl(file) {
         return new Promise((resolve, reject) => {
@@ -138,6 +235,17 @@
       }
 
       function updateControlVisibility() {
+        const contentType = elements.contentType.value;
+        const details = typeDetails[contentType];
+        elements.contentField.hidden = !details;
+        elements.wifiFields.hidden = contentType !== "wifi";
+        elements.emailFields.hidden = contentType !== "email";
+        elements.phoneFields.hidden = contentType !== "phone";
+        elements.smsFields.hidden = contentType !== "sms";
+        if (details) {
+          elements.contentLabel.textContent = details.label;
+          elements.content.placeholder = details.placeholder;
+        }
         elements.codeColorField.hidden = elements.colorMode.value === "rainbow";
         elements.logoOptions.hidden = !logoFile;
         elements.logoColorField.hidden = !logoFile || elements.logoColorMode.value !== "single";
@@ -145,11 +253,50 @@
         elements.sizeValue.textContent = elements.size.value;
       }
 
+      function escapedWifiValue(value) {
+        return value.replace(/([\\;,:])/g, "\\$1");
+      }
+
+      function contentForQRCode() {
+        switch (elements.contentType.value) {
+          case "wifi": {
+            const ssid = elements.wifiSsid.value.trim();
+            if (!ssid) throw new Error("Enter the Wi-Fi network name.");
+            const security = elements.wifiSecurity.value;
+            const password = elements.wifiPassword.value;
+            return `WIFI:T:${security};S:${escapedWifiValue(ssid)};${security === "nopass" ? "" : `P:${escapedWifiValue(password)};`};`;
+          }
+          case "email": {
+            const address = elements.emailTo.value.trim();
+            if (!address) throw new Error("Enter an email address.");
+            const parameters = new URLSearchParams();
+            if (elements.emailSubject.value) parameters.set("subject", elements.emailSubject.value);
+            if (elements.emailBody.value) parameters.set("body", elements.emailBody.value);
+            const query = parameters.toString();
+            return `mailto:${encodeURIComponent(address)}${query ? `?${query}` : ""}`;
+          }
+          case "phone": {
+            const number = elements.phoneNumber.value.trim();
+            if (!number) throw new Error("Enter a phone number.");
+            return `tel:${number}`;
+          }
+          case "sms": {
+            const number = elements.smsNumber.value.trim();
+            if (!number) throw new Error("Enter a phone number.");
+            return `SMSTO:${number}:${elements.smsMessage.value}`;
+          }
+          default: {
+            const content = elements.content.value.trim();
+            if (!content) throw new Error(elements.contentType.value === "url" ? "Enter a website URL." : "Enter some text.");
+            return content;
+          }
+        }
+      }
+
       function render() {
         updateControlVisibility();
         try {
-          const content = elements.content.value.trim();
-          if (!content) throw new Error("Enter a link or some text to create a QR code.");
+          const content = contentForQRCode();
           const dots = Number(elements.cornerRadius.value) === 100;
           currentSvg = createStyledQRCode(content, {
             backgroundColor: "#ffffff", color: elements.color.value, cornerRadius: dots ? 0 : Number(elements.cornerRadius.value) / 100, errorCorrectionLevel: logoSource ? "H" : "M",
@@ -207,15 +354,39 @@
         }
       }
 
-      for (const element of [elements.content, elements.color, elements.colorMode, elements.size]) element.addEventListener("input", render);
-      elements.cornerRadius.addEventListener("input", () => { const radius = Number(elements.cornerRadius.value); elements.style.value = radius === 0 ? "square" : radius === 100 ? "dot" : "rounded"; render(); });
-      elements.style.addEventListener("input", () => { if (elements.style.value === "square") elements.cornerRadius.value = "0"; if (elements.style.value === "rounded" && (Number(elements.cornerRadius.value) === 0 || Number(elements.cornerRadius.value) === 100)) elements.cornerRadius.value = "28"; if (elements.style.value === "dot") elements.cornerRadius.value = "100"; render(); });
-      elements.logoFile.addEventListener("input", () => { logoFile = elements.logoFile.files?.[0]; refreshLogo(); });
-      elements.logoColorMode.addEventListener("input", refreshLogo);
-      elements.logoColor.addEventListener("input", refreshLogo);
+      function syncStyleFromRadius() {
+        const radius = Number(elements.cornerRadius.value);
+        elements.style.value = radius === 0 ? "square" : radius === 100 ? "dot" : "rounded";
+      }
+
+      function renderAndPersist() {
+        render();
+        persistFormState();
+      }
+
+      for (const element of [elements.content, elements.color, elements.emailBody, elements.emailSubject, elements.emailTo, elements.logoColor, elements.phoneNumber, elements.size, elements.smsMessage, elements.smsNumber, elements.wifiPassword, elements.wifiSsid]) element.addEventListener("input", renderAndPersist);
+      for (const element of [elements.colorMode, elements.contentType, elements.wifiSecurity]) element.addEventListener("change", renderAndPersist);
+      elements.cornerRadius.addEventListener("input", () => { syncStyleFromRadius(); renderAndPersist(); });
+      elements.style.addEventListener("change", () => {
+        if (elements.style.value === "square") elements.cornerRadius.value = "0";
+        if (elements.style.value === "rounded" && (Number(elements.cornerRadius.value) === 0 || Number(elements.cornerRadius.value) === 100)) elements.cornerRadius.value = "28";
+        if (elements.style.value === "dot") elements.cornerRadius.value = "100";
+        renderAndPersist();
+      });
+      elements.logoFile.addEventListener("change", () => {
+        logoFile = elements.logoFile.files?.[0];
+        elements.logoStatus.textContent = logoFile ? "Preparing logo…" : "No logo selected";
+        persistLogo(logoFile);
+        refreshLogo();
+      });
+      elements.logoColorMode.addEventListener("change", () => { persistFormState(); refreshLogo(); });
+      elements.logoColor.addEventListener("input", () => { persistFormState(); refreshLogo(); });
       elements.download.addEventListener("click", downloadSvg);
       elements.downloadPng.addEventListener("click", downloadPng);
+      restoreFormState();
+      syncStyleFromRadius();
       render();
+      restoreLogo();
     </script>
   </body>
 </html>

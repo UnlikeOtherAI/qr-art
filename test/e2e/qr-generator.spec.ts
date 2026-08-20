@@ -79,5 +79,49 @@ test("renders QR codes and supports all visual controls", async ({ page }) => {
   await expect(page.locator("#logoColorField")).toBeVisible();
   await expect(page.locator("#qr svg image")).toHaveCount(1);
   await expect(page.locator("#qr svg image")).toHaveAttribute("href", /^data:image\/png/);
+
+  await expect(page.locator("#contentType")).toHaveValue("url");
+  await expect(page.locator("#contentLabel")).toHaveText("Website URL");
+
+  await page.selectOption("#contentType", "text");
+  await expect(page.locator("#contentField")).toBeVisible();
+  await expect(page.locator("#contentLabel")).toHaveText("Plain text");
+  await page.locator("#content").fill("A short message");
+  await expect(page.locator("#qr svg")).toHaveCount(1);
+
+  await page.selectOption("#contentType", "email");
+  await expect(page.locator("#emailFields")).toBeVisible();
+  await page.locator("#emailTo").fill("hello@example.com");
+  await page.locator("#emailSubject").fill("Hello");
+  await page.locator("#emailBody").fill("Message body");
+  await expect(page.locator("#qr svg")).toHaveCount(1);
+
+  await page.selectOption("#contentType", "phone");
+  await expect(page.locator("#phoneFields")).toBeVisible();
+  await page.locator("#phoneNumber").fill("+441234567890");
+  await expect(page.locator("#qr svg")).toHaveCount(1);
+
+  await page.selectOption("#contentType", "sms");
+  await expect(page.locator("#smsFields")).toBeVisible();
+  await page.locator("#smsNumber").fill("+441234567890");
+  await page.locator("#smsMessage").fill("See you there");
+  await expect(page.locator("#qr svg")).toHaveCount(1);
+
+  await page.selectOption("#contentType", "wifi");
+  await expect(page.locator("#wifiFields")).toBeVisible();
+  await page.locator("#wifiSsid").fill("Studio Wi-Fi");
+  await page.selectOption("#wifiSecurity", "WPA");
+  await page.locator("#wifiPassword").fill("secret-passphrase");
+  await expect(page.locator("#qr svg")).toHaveCount(1);
+
+  await page.reload();
+  await expect(page.locator("#contentType")).toHaveValue("wifi");
+  await expect(page.locator("#wifiFields")).toBeVisible();
+  await expect(page.locator("#wifiSsid")).toHaveValue("Studio Wi-Fi");
+  await expect(page.locator("#wifiPassword")).toHaveValue("secret-passphrase");
+  await expect(page.locator("#colorMode")).toHaveValue("rainbow");
+  await expect(page.locator("#size")).toHaveValue("640");
+  await expect(page.locator("#cornerRadius")).toHaveValue("100");
+  await expect(page.locator("#qr svg image")).toHaveCount(1);
   expect(browserErrors).toEqual([]);
 });
