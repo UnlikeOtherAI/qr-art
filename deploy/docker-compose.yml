@@ -1,0 +1,14 @@
+services:
+  qr-web:
+    image: nginx:alpine
+    container_name: qr-web
+    restart: unless-stopped
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - edge
+
+networks:
+  edge:
+    external: true
