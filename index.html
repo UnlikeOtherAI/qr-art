@@ -38,6 +38,7 @@
       .preview-inner { display: grid; justify-items: center; gap: 22px; width: min(100%, 390px); }
       #qr { display: grid; width: 100%; min-height: 280px; place-items: center; padding: 20px; background: #fff; border-radius: 16px; box-shadow: 0 12px 30px rgb(67 56 202 / .14); }
       #qr svg { display: block; width: 100%; height: auto; }
+      .download-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
       .render-error { color: var(--error); font-size: .9rem; line-height: 1.5; text-align: center; }
       button { width: 100%; min-height: 46px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; font: inherit; font-weight: 800; }
       button:hover:not(:disabled) { background: var(--accent-dark); }
@@ -63,7 +64,7 @@
           </div>
           <div class="row">
             <label class="field" for="style"><span>Module style</span><select id="style"><option value="rounded">Rounded squares</option><option value="square">Sharp squares</option><option value="dot">Dots</option></select></label>
-            <label id="cornerRadiusField" class="field" for="cornerRadius"><span>Corner radius</span><span class="range-line"><input id="cornerRadius" type="range" min="0" max="50" step="1" value="28" /><output id="cornerRadiusValue" for="cornerRadius">28%</output></span></label>
+            <label id="cornerRadiusField" class="field" for="cornerRadius"><span>Corner radius</span><span class="range-line"><input id="cornerRadius" type="range" min="0" max="100" step="1" value="28" /><output id="cornerRadiusValue" for="cornerRadius">28%</output></span></label>
           </div>
           <label class="field" for="size"><span>Size</span><span class="range-line"><input id="size" type="range" min="160" max="1024" step="16" value="512" /><output id="sizeValue" for="size">512</output></span></label>
           <div class="logo-controls">
@@ -76,14 +77,14 @@
             </div>
           </div>
         </div>
-        <div class="preview"><div class="preview-inner"><div id="qr" aria-live="polite"></div><button id="download" type="button">Download SVG</button><div class="hint">The logo is scaled into a clear centre frame to keep the code easy to scan.</div></div></div>
+        <div class="preview"><div class="preview-inner"><div id="qr" aria-live="polite"></div><div class="download-actions"><button id="download" type="button">Download SVG</button><button id="downloadPng" type="button">Download PNG</button></div><div class="hint">The logo is scaled into a clear centre frame to keep the code easy to scan.</div></div></div>
       </section>
     </main>
     <script type="module">
       import { createStyledQRCode, makeLogoBackgroundTransparent } from "./dist/index.js?version=__BUILD_VERSION__";
 
       const elements = {
-        codeColorField: document.querySelector("#codeColorField"), color: document.querySelector("#color"), colorMode: document.querySelector("#colorMode"), content: document.querySelector("#content"), cornerRadius: document.querySelector("#cornerRadius"), cornerRadiusField: document.querySelector("#cornerRadiusField"), cornerRadiusValue: document.querySelector("#cornerRadiusValue"), download: document.querySelector("#download"), logoColor: document.querySelector("#logoColor"), logoColorField: document.querySelector("#logoColorField"), logoColorMode: document.querySelector("#logoColorMode"), logoFile: document.querySelector("#logoFile"), logoOptions: document.querySelector("#logoOptions"), logoStatus: document.querySelector("#logoStatus"), qr: document.querySelector("#qr"), size: document.querySelector("#size"), sizeValue: document.querySelector("#sizeValue"), style: document.querySelector("#style"),
+        codeColorField: document.querySelector("#codeColorField"), color: document.querySelector("#color"), colorMode: document.querySelector("#colorMode"), content: document.querySelector("#content"), cornerRadius: document.querySelector("#cornerRadius"), cornerRadiusField: document.querySelector("#cornerRadiusField"), cornerRadiusValue: document.querySelector("#cornerRadiusValue"), download: document.querySelector("#download"), downloadPng: document.querySelector("#downloadPng"), logoColor: document.querySelector("#logoColor"), logoColorField: document.querySelector("#logoColorField"), logoColorMode: document.querySelector("#logoColorMode"), logoFile: document.querySelector("#logoFile"), logoOptions: document.querySelector("#logoOptions"), logoStatus: document.querySelector("#logoStatus"), qr: document.querySelector("#qr"), size: document.querySelector("#size"), sizeValue: document.querySelector("#sizeValue"), style: document.querySelector("#style"),
       };
       let currentSvg = "";
       let logoFile;
@@ -137,9 +138,7 @@
       }
 
       function updateControlVisibility() {
-        const dots = elements.style.value === "dot";
         elements.codeColorField.hidden = elements.colorMode.value === "rainbow";
-        elements.cornerRadiusField.hidden = dots;
         elements.logoOptions.hidden = !logoFile;
         elements.logoColorField.hidden = !logoFile || elements.logoColorMode.value !== "single";
         elements.cornerRadiusValue.textContent = `${elements.cornerRadius.value}%`;
@@ -151,7 +150,7 @@
         try {
           const content = elements.content.value.trim();
           if (!content) throw new Error("Enter a link or some text to create a QR code.");
-          const dots = elements.style.value === "dot";
+          const dots = Number(elements.cornerRadius.value) === 100;
           currentSvg = createStyledQRCode(content, {
             backgroundColor: "#ffffff", color: elements.color.value, cornerRadius: dots ? 0 : Number(elements.cornerRadius.value) / 100, errorCorrectionLevel: logoSource ? "H" : "M",
             logo: logoSource ? { backgroundColor: "#ffffff", borderRadius: 18, padding: 12, sizeRatio: 0.22, src: logoSource } : undefined,
@@ -160,14 +159,16 @@
           }).toSvg();
           elements.qr.innerHTML = currentSvg;
           elements.download.disabled = false;
+          elements.downloadPng.disabled = false;
         } catch (error) {
           currentSvg = "";
           elements.qr.innerHTML = `<p class="render-error">${error instanceof Error ? error.message : "The QR code could not be generated."}</p>`;
           elements.download.disabled = true;
+          elements.downloadPng.disabled = true;
         }
       }
 
-      function download() {
+      function downloadSvg() {
         const blob = new Blob([currentSvg], { type: "image/svg+xml" });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
@@ -177,12 +178,43 @@
         URL.revokeObjectURL(url);
       }
 
-      for (const element of [elements.content, elements.color, elements.colorMode, elements.cornerRadius, elements.size]) element.addEventListener("input", render);
-      elements.style.addEventListener("input", () => { if (elements.style.value === "square") elements.cornerRadius.value = "0"; if (elements.style.value === "rounded" && Number(elements.cornerRadius.value) === 0) elements.cornerRadius.value = "28"; render(); });
+      async function downloadPng() {
+        const svgBlob = new Blob([currentSvg], { type: "image/svg+xml" });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        try {
+          const image = new Image();
+          image.src = svgUrl;
+          await image.decode();
+          const canvas = document.createElement("canvas");
+          const size = Number(elements.size.value);
+          canvas.width = size;
+          canvas.height = size;
+          const context = canvas.getContext("2d");
+          if (!context) throw new Error("The browser could not create a PNG.");
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, size, size);
+          context.drawImage(image, 0, 0, size, size);
+          const png = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+          if (!png) throw new Error("The browser could not create a PNG.");
+          const pngUrl = URL.createObjectURL(png);
+          const anchor = document.createElement("a");
+          anchor.href = pngUrl;
+          anchor.download = "qr-code.png";
+          anchor.click();
+          URL.revokeObjectURL(pngUrl);
+        } finally {
+          URL.revokeObjectURL(svgUrl);
+        }
+      }
+
+      for (const element of [elements.content, elements.color, elements.colorMode, elements.size]) element.addEventListener("input", render);
+      elements.cornerRadius.addEventListener("input", () => { const radius = Number(elements.cornerRadius.value); elements.style.value = radius === 0 ? "square" : radius === 100 ? "dot" : "rounded"; render(); });
+      elements.style.addEventListener("input", () => { if (elements.style.value === "square") elements.cornerRadius.value = "0"; if (elements.style.value === "rounded" && (Number(elements.cornerRadius.value) === 0 || Number(elements.cornerRadius.value) === 100)) elements.cornerRadius.value = "28"; if (elements.style.value === "dot") elements.cornerRadius.value = "100"; render(); });
       elements.logoFile.addEventListener("input", () => { logoFile = elements.logoFile.files?.[0]; refreshLogo(); });
       elements.logoColorMode.addEventListener("input", refreshLogo);
       elements.logoColor.addEventListener("input", refreshLogo);
-      elements.download.addEventListener("click", download);
+      elements.download.addEventListener("click", downloadSvg);
+      elements.downloadPng.addEventListener("click", downloadPng);
       render();
     </script>
   </body>

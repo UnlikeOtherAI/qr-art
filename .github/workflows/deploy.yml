@@ -54,5 +54,5 @@ jobs:
           QR_DEPLOY_HOST: ${{ secrets.QR_DEPLOY_HOST }}
           QR_DEPLOY_USER: ${{ secrets.QR_DEPLOY_USER }}
         run: |
-          rsync -az --delete -e "ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" site/ "$QR_DEPLOY_USER@$QR_DEPLOY_HOST:/srv/qr/incoming/"
+          rsync -rzlt --delete -e "ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" site/ "$QR_DEPLOY_USER@$QR_DEPLOY_HOST:/srv/qr/incoming/"
           ssh -i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "$QR_DEPLOY_USER@$QR_DEPLOY_HOST" 'sudo /usr/local/sbin/deploy-qr'

@@ -14,6 +14,7 @@ fi
 
 install -d -m 0755 "$site_dir"
 rsync -rltD --delete "$incoming_dir/" "$site_dir/"
+chown -R qr-deploy:qr-deploy "$incoming_dir"
 chown -R root:root "$site_dir"
 find "$site_dir" -type d -exec chmod 0755 {} +
 find "$site_dir" -type f -exec chmod 0644 {} +
