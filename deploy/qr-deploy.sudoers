@@ -1,0 +1,1 @@
+qr-deploy ALL=(root) NOPASSWD: /usr/local/sbin/deploy-qr

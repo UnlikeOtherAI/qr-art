@@ -1,6 +1,9 @@
 dist
+site
 node_modules
 .worktrees
 .playwright-cli
+playwright-report
+test-results
 *.log
 .DS_Store

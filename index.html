@@ -6,124 +6,44 @@
     <meta name="theme-color" content="#0b1020" />
     <title>QR Generator</title>
     <style>
-      :root {
-        color-scheme: light;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --ink: #111827;
-        --muted: #667085;
-        --line: #d9deea;
-        --page: #f4f7fb;
-        --panel: #ffffff;
-        --accent: #4f46e5;
-        --accent-dark: #3730a3;
-      }
-
+      :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --ink: #121826; --muted: #667085; --line: #d9deea; --page: #f4f7fb; --panel: #fff; --accent: #5147e7; --accent-dark: #3830b8; --error: #b42318; }
       * { box-sizing: border-box; }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        background: radial-gradient(circle at 80% -10%, #e0e7ff 0, transparent 28rem), var(--page);
-        color: var(--ink);
-      }
-
-      main {
-        width: min(100% - 32px, 1040px);
-        margin: 0 auto;
-        padding: 52px 0;
-      }
-
+      body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 80% -10%, #e0e7ff 0, transparent 28rem), var(--page); color: var(--ink); }
+      main { width: min(100% - 32px, 1080px); margin: 0 auto; padding: 52px 0; }
       header { margin-bottom: 30px; }
-
-      .eyebrow {
-        margin: 0 0 10px;
-        color: var(--accent);
-        font-size: 0.78rem;
-        font-weight: 800;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-      }
-
-      h1 {
-        margin: 0;
-        max-width: 720px;
-        font-size: clamp(2rem, 5vw, 3.5rem);
-        letter-spacing: -0.055em;
-        line-height: 1;
-      }
-
+      .eyebrow { margin: 0 0 10px; color: var(--accent); font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+      h1 { margin: 0; max-width: 720px; font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -.055em; line-height: 1; }
       header > p:not(.eyebrow) { color: var(--muted); font-size: 1.05rem; line-height: 1.6; margin: 14px 0 0; }
-
-      .workspace {
-        display: grid;
-        grid-template-columns: minmax(270px, 0.88fr) minmax(300px, 1.12fr);
-        overflow: hidden;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        box-shadow: 0 24px 64px rgb(15 23 42 / 0.08);
-      }
-
+      .workspace { display: grid; grid-template-columns: minmax(300px, .95fr) minmax(340px, 1.05fr); overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 24px 64px rgb(15 23 42 / .08); }
       .controls { padding: 28px; border-right: 1px solid var(--line); }
       .controls h2 { font-size: 1.05rem; margin: 0 0 22px; }
       .field { display: grid; gap: 8px; margin-top: 18px; }
       .field:first-of-type { margin-top: 0; }
-      label, .field > span { font-size: 0.84rem; font-weight: 700; }
-      textarea, select, input[type="color"] {
-        width: 100%;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        background: #fff;
-        color: inherit;
-        font: inherit;
-      }
-      textarea { min-height: 106px; padding: 12px; line-height: 1.4; resize: vertical; }
+      label, .field > span, .field-label { font-size: .84rem; font-weight: 700; }
+      textarea, select, input[type="color"] { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: inherit; font: inherit; }
+      textarea { min-height: 96px; padding: 12px; line-height: 1.4; resize: vertical; }
       select { min-height: 44px; padding: 0 10px; }
       input[type="color"] { height: 44px; padding: 5px; cursor: pointer; }
-      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-      .range-line { display: grid; grid-template-columns: 1fr 52px; align-items: center; gap: 12px; }
       input[type="range"] { width: 100%; accent-color: var(--accent); }
-      output { color: var(--muted); font-size: 0.88rem; text-align: right; }
-
-      .preview {
-        display: grid;
-        min-height: 480px;
-        place-items: center;
-        padding: 28px;
-        background: linear-gradient(145deg, #f8faff, #eef2ff);
-      }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .range-line { display: grid; grid-template-columns: 1fr 56px; align-items: center; gap: 12px; }
+      output { color: var(--muted); font-size: .88rem; text-align: right; }
+      .logo-controls { display: grid; gap: 12px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+      .upload { display: flex; align-items: center; justify-content: center; min-height: 44px; border: 1px dashed #aeb8d2; border-radius: 10px; color: var(--accent); cursor: pointer; font-size: .88rem; font-weight: 750; }
+      .upload:hover { border-color: var(--accent); background: #f7f6ff; }
+      .upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+      .logo-status { min-height: 1.2em; color: var(--muted); font-size: .78rem; }
+      [hidden] { display: none !important; }
+      .preview { display: grid; min-height: 570px; place-items: center; padding: 28px; background: linear-gradient(145deg, #f8faff, #eef2ff); }
       .preview-inner { display: grid; justify-items: center; gap: 22px; width: min(100%, 390px); }
-      #qr {
-        display: grid;
-        width: 100%;
-        min-height: 260px;
-        place-items: center;
-        padding: 20px;
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 12px 30px rgb(67 56 202 / 0.14);
-      }
+      #qr { display: grid; width: 100%; min-height: 280px; place-items: center; padding: 20px; background: #fff; border-radius: 16px; box-shadow: 0 12px 30px rgb(67 56 202 / .14); }
       #qr svg { display: block; width: 100%; height: auto; }
-      button {
-        width: 100%;
-        min-height: 46px;
-        border: 0;
-        border-radius: 10px;
-        background: var(--accent);
-        color: #fff;
-        cursor: pointer;
-        font: inherit;
-        font-weight: 800;
-      }
-      button:hover { background: var(--accent-dark); }
-      .hint { color: var(--muted); font-size: 0.8rem; line-height: 1.5; text-align: center; }
-
-      @media (max-width: 700px) {
-        main { width: min(100% - 24px, 1040px); padding: 32px 0; }
-        .workspace { grid-template-columns: 1fr; }
-        .controls { border-right: 0; border-bottom: 1px solid var(--line); }
-        .preview { min-height: 380px; }
-      }
+      .render-error { color: var(--error); font-size: .9rem; line-height: 1.5; text-align: center; }
+      button { width: 100%; min-height: 46px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; font: inherit; font-weight: 800; }
+      button:hover:not(:disabled) { background: var(--accent-dark); }
+      button:disabled { cursor: not-allowed; opacity: .55; }
+      .hint { color: var(--muted); font-size: .8rem; line-height: 1.5; text-align: center; }
+      @media (max-width: 760px) { main { width: min(100% - 24px, 1080px); padding: 32px 0; } .workspace { grid-template-columns: 1fr; } .controls { border-right: 0; border-bottom: 1px solid var(--line); } .preview { min-height: 410px; } }
     </style>
   </head>
   <body>
@@ -131,75 +51,120 @@
       <header>
         <p class="eyebrow">QR Generator</p>
         <h1>Turn any link or text into a QR code.</h1>
-        <p>Generate a crisp, customizable QR code entirely in your browser. Nothing you enter is sent to a server.</p>
+        <p>Generate a crisp, customizable QR code entirely in your browser. Nothing you enter or upload is sent to a server.</p>
       </header>
-
       <section class="workspace" aria-label="QR code generator">
         <div class="controls">
           <h2>Customize</h2>
-          <label class="field" for="content">
-            <span>Link or text</span>
-            <textarea id="content" autocomplete="off" spellcheck="false">https://unlikeotherai.com</textarea>
-          </label>
+          <label class="field" for="content"><span>Link or text</span><textarea id="content" autocomplete="off" spellcheck="false">https://unlikeotherai.com</textarea></label>
           <div class="row">
-            <label class="field" for="color">
-              <span>Code color</span>
-              <input id="color" type="color" value="#111827" />
-            </label>
-            <label class="field" for="shape">
-              <span>Style</span>
-              <select id="shape">
-                <option value="square">Rounded squares</option>
-                <option value="dot">Dots</option>
-              </select>
-            </label>
+            <label class="field" for="colorMode"><span>Code colour</span><select id="colorMode"><option value="solid">Solid</option><option value="rainbow">Rainbow</option></select></label>
+            <label id="codeColorField" class="field" for="color"><span>Solid colour</span><input id="color" type="color" value="#121826" /></label>
           </div>
-          <label class="field" for="size">
-            <span>Size</span>
-            <span class="range-line">
-              <input id="size" type="range" min="160" max="1024" step="16" value="512" />
-              <output id="sizeValue" for="size">512</output>
-            </span>
-          </label>
-        </div>
-        <div class="preview">
-          <div class="preview-inner">
-            <div id="qr" aria-live="polite"></div>
-            <button id="download" type="button">Download SVG</button>
-            <div class="hint">SVG stays sharp at any size, whether you print it or use it online.</div>
+          <div class="row">
+            <label class="field" for="style"><span>Module style</span><select id="style"><option value="rounded">Rounded squares</option><option value="square">Sharp squares</option><option value="dot">Dots</option></select></label>
+            <label id="cornerRadiusField" class="field" for="cornerRadius"><span>Corner radius</span><span class="range-line"><input id="cornerRadius" type="range" min="0" max="50" step="1" value="28" /><output id="cornerRadiusValue" for="cornerRadius">28%</output></span></label>
+          </div>
+          <label class="field" for="size"><span>Size</span><span class="range-line"><input id="size" type="range" min="160" max="1024" step="16" value="512" /><output id="sizeValue" for="size">512</output></span></label>
+          <div class="logo-controls">
+            <span class="field-label">Centre logo</span>
+            <label class="upload" for="logoFile"><span>Upload logo</span><input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" /></label>
+            <span id="logoStatus" class="logo-status">No logo selected</span>
+            <div id="logoOptions" class="row" hidden>
+              <label class="field" for="logoColorMode"><span>Logo colour</span><select id="logoColorMode"><option value="original">Original</option><option value="single">Single colour</option></select></label>
+              <label id="logoColorField" class="field" for="logoColor" hidden><span>Single colour</span><input id="logoColor" type="color" value="#121826" /></label>
+            </div>
           </div>
         </div>
+        <div class="preview"><div class="preview-inner"><div id="qr" aria-live="polite"></div><button id="download" type="button">Download SVG</button><div class="hint">The logo is scaled into a clear centre frame to keep the code easy to scan.</div></div></div>
       </section>
     </main>
-
     <script type="module">
-      import { createStyledQRCode } from "./dist/index.js";
+      import { createStyledQRCode, makeLogoBackgroundTransparent } from "./dist/index.js?version=__BUILD_VERSION__";
 
       const elements = {
-        color: document.querySelector("#color"),
-        content: document.querySelector("#content"),
-        download: document.querySelector("#download"),
-        qr: document.querySelector("#qr"),
-        shape: document.querySelector("#shape"),
-        size: document.querySelector("#size"),
-        sizeValue: document.querySelector("#sizeValue"),
+        codeColorField: document.querySelector("#codeColorField"), color: document.querySelector("#color"), colorMode: document.querySelector("#colorMode"), content: document.querySelector("#content"), cornerRadius: document.querySelector("#cornerRadius"), cornerRadiusField: document.querySelector("#cornerRadiusField"), cornerRadiusValue: document.querySelector("#cornerRadiusValue"), download: document.querySelector("#download"), logoColor: document.querySelector("#logoColor"), logoColorField: document.querySelector("#logoColorField"), logoColorMode: document.querySelector("#logoColorMode"), logoFile: document.querySelector("#logoFile"), logoOptions: document.querySelector("#logoOptions"), logoStatus: document.querySelector("#logoStatus"), qr: document.querySelector("#qr"), size: document.querySelector("#size"), sizeValue: document.querySelector("#sizeValue"), style: document.querySelector("#style"),
       };
       let currentSvg = "";
+      let logoFile;
+      let logoSource;
+      let logoRequest = 0;
+
+      function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.addEventListener("load", () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("The logo could not be read.")));
+          reader.addEventListener("error", () => reject(new Error("The logo could not be read.")));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function tintLogo(source, color) {
+        const image = new Image();
+        image.src = source;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("The browser could not prepare the logo.");
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
+        context.drawImage(image, 0, 0);
+        context.globalCompositeOperation = "source-in";
+        context.fillStyle = color;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL("image/png");
+      }
+
+      async function refreshLogo() {
+        const request = ++logoRequest;
+        if (!logoFile) { logoSource = undefined; render(); return; }
+        elements.logoStatus.textContent = "Preparing logo…";
+        try {
+          const original = await readFileAsDataUrl(logoFile);
+          const nextSource = elements.logoColorMode.value === "single"
+            ? await tintLogo(await makeLogoBackgroundTransparent(logoFile, { color: "#ffffff", tolerance: 44 }), elements.logoColor.value)
+            : original;
+          if (request !== logoRequest) return;
+          logoSource = nextSource;
+          elements.logoStatus.textContent = logoFile.name;
+          render();
+        } catch (error) {
+          if (request !== logoRequest) return;
+          logoSource = undefined;
+          elements.logoStatus.textContent = error instanceof Error ? error.message : "The logo could not be prepared.";
+          render();
+        }
+      }
+
+      function updateControlVisibility() {
+        const dots = elements.style.value === "dot";
+        elements.codeColorField.hidden = elements.colorMode.value === "rainbow";
+        elements.cornerRadiusField.hidden = dots;
+        elements.logoOptions.hidden = !logoFile;
+        elements.logoColorField.hidden = !logoFile || elements.logoColorMode.value !== "single";
+        elements.cornerRadiusValue.textContent = `${elements.cornerRadius.value}%`;
+        elements.sizeValue.textContent = elements.size.value;
+      }
 
       function render() {
-        const size = Number(elements.size.value);
-        const content = elements.content.value.trim() || " ";
-
-        elements.sizeValue.textContent = String(size);
-        currentSvg = createStyledQRCode(content, {
-          backgroundColor: "#ffffff",
-          color: elements.color.value,
-          cornerRadius: elements.shape.value === "dot" ? 0 : 0.28,
-          errorCorrectionLevel: "M",
-          shape: elements.shape.value,
-          size,
-        }).toSvg();
-        elements.qr.innerHTML = currentSvg;
+        updateControlVisibility();
+        try {
+          const content = elements.content.value.trim();
+          if (!content) throw new Error("Enter a link or some text to create a QR code.");
+          const dots = elements.style.value === "dot";
+          currentSvg = createStyledQRCode(content, {
+            backgroundColor: "#ffffff", color: elements.color.value, cornerRadius: dots ? 0 : Number(elements.cornerRadius.value) / 100, errorCorrectionLevel: logoSource ? "H" : "M",
+            logo: logoSource ? { backgroundColor: "#ffffff", borderRadius: 18, padding: 12, sizeRatio: 0.22, src: logoSource } : undefined,
+            mask: elements.colorMode.value === "rainbow" ? { direction: "diagonal", preset: "rainbow" } : undefined,
+            shape: dots ? "dot" : "square", size: Number(elements.size.value),
+          }).toSvg();
+          elements.qr.innerHTML = currentSvg;
+          elements.download.disabled = false;
+        } catch (error) {
+          currentSvg = "";
+          elements.qr.innerHTML = `<p class="render-error">${error instanceof Error ? error.message : "The QR code could not be generated."}</p>`;
+          elements.download.disabled = true;
+        }
       }
 
       function download() {
@@ -212,9 +177,11 @@
         URL.revokeObjectURL(url);
       }
 
-      for (const element of [elements.content, elements.color, elements.shape, elements.size]) {
-        element.addEventListener("input", render);
-      }
+      for (const element of [elements.content, elements.color, elements.colorMode, elements.cornerRadius, elements.size]) element.addEventListener("input", render);
+      elements.style.addEventListener("input", () => { if (elements.style.value === "square") elements.cornerRadius.value = "0"; if (elements.style.value === "rounded" && Number(elements.cornerRadius.value) === 0) elements.cornerRadius.value = "28"; render(); });
+      elements.logoFile.addEventListener("input", () => { logoFile = elements.logoFile.files?.[0]; refreshLogo(); });
+      elements.logoColorMode.addEventListener("input", refreshLogo);
+      elements.logoColor.addEventListener("input", refreshLogo);
       elements.download.addEventListener("click", download);
       render();
     </script>

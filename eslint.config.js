@@ -6,7 +6,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.strict,
   {
-    ignores: [".worktrees", "dist", "node_modules"],
+    ignores: [".worktrees", "dist", "node_modules", "site"],
   },
   {
     files: ["**/*.js"],

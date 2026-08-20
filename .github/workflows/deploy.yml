@@ -1,0 +1,58 @@
+name: Test and deploy QR Generator
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: qr-production-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.22.0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify library and browser UI
+        run: |
+          pnpm check
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:e2e
+
+      - name: Build static site
+        run: pnpm build:site
+
+      - name: Configure deploy SSH identity
+        env:
+          QR_DEPLOY_KNOWN_HOSTS: ${{ secrets.QR_DEPLOY_KNOWN_HOSTS }}
+          QR_DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.QR_DEPLOY_SSH_PRIVATE_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$QR_DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$QR_DEPLOY_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      - name: Upload and activate release
+        env:
+          QR_DEPLOY_HOST: ${{ secrets.QR_DEPLOY_HOST }}
+          QR_DEPLOY_USER: ${{ secrets.QR_DEPLOY_USER }}
+        run: |
+          rsync -az --delete -e "ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" site/ "$QR_DEPLOY_USER@$QR_DEPLOY_HOST:/srv/qr/incoming/"
+          ssh -i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "$QR_DEPLOY_USER@$QR_DEPLOY_HOST" 'sudo /usr/local/sbin/deploy-qr'
